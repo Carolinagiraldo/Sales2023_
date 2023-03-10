@@ -24,8 +24,10 @@ namespace Sales.API.Data
         {
             await _context.Database.EnsureCreatedAsync();
             await CheckCountriesAsync();
-            await CheckRolesAsync();
-            await CheckUserAsync("1010", "Juan", "Zuluaga", "zulu@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", UserType.Admin);
+            await CheckCategoriesAsync();
+           // await CheckRolesAsync();
+            //await CheckUserAsync("1010", "Juan", "Zuluaga", "zulu@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", UserType.Admin);
+        
         }
 
         private async Task CheckRolesAsync()
@@ -58,7 +60,33 @@ namespace Sales.API.Data
 
             return user;
         }
+        private async Task CheckCategoriesAsync()
+        {
+            if (!_context.Categories.Any())
+            {
+               
+                _context.Categories.Add(new Category { Name = "Cámaras" });
+                _context.Categories.Add(new Category { Name = "Camas" });
+                _context.Categories.Add(new Category { Name = "Celulares" });
+                _context.Categories.Add(new Category { Name = "Cerámica" });
+                _context.Categories.Add(new Category { Name = "Cocina" });
+                _context.Categories.Add(new Category { Name = "Colchones" });
+                _context.Categories.Add(new Category { Name = "Comedores" });
+                _context.Categories.Add(new Category { Name = "Peluches" });
+                _context.Categories.Add(new Category { Name = "Perfumes" });
+                _context.Categories.Add(new Category { Name = "Pintura" });
+                _context.Categories.Add(new Category { Name = "Planchas y Secadores" });
+                _context.Categories.Add(new Category { Name = "Plantas" });
+                _context.Categories.Add(new Category { Name = "Puertas" });
+                _context.Categories.Add(new Category { Name = "Relojes" });
+                _context.Categories.Add(new Category { Name = "Ropa" });
+                _context.Categories.Add(new Category { Name = "Ropa Deportiva" });
+                _context.Categories.Add(new Category { Name = "Ropa Infantil" });
+             
 
+                await _context.SaveChangesAsync();
+            }
+        }
         private async Task CheckCountriesAsync()
         {
             if (!_context.Countries.Any())
@@ -118,4 +146,5 @@ namespace Sales.API.Data
             }
         }
     }
+
 }
