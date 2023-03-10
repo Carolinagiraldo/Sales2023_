@@ -6,7 +6,7 @@ using Sales.Shared.Entities;
 using Sales.API.Helpers;
 using Sales.Shared.DTOs;
 
-namespace ITMSales.API.Controllers
+namespace Sales.API.Controllers
 {
     [ApiController]
     [Route("/api/categories")]
