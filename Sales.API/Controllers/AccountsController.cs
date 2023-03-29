@@ -7,7 +7,7 @@ using Sales.Shared.DTOs;
 using Sales.Shared.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Text; 
 
 namespace Sales.API.Controllers
 {
