@@ -3,11 +3,11 @@
 <NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
 
 <EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <div class="mb-3">
         <label>Estado/Departamenteo:</label>
         <div>
-            <InputText class="form-control" @bind-Value="@State.Name"/>
+            <InputText class="form-control" @bind-Value="@State.Name" />
             <ValidationMessage For="@(() => State.Name)" />
         </div>
     </div>

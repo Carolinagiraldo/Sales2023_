@@ -40,7 +40,6 @@
     private async Task OnBeforeInternalNavigation(LocationChangingContext context)
     {
         var formWasMofied = editContext.IsModified();
-
         if (!formWasMofied || FormPostedSuccessfully)
         {
             return;
@@ -57,7 +56,6 @@
             });
 
         var confirm = !string.IsNullOrEmpty(result.Value);
-
         if (confirm)
         {
             return;
