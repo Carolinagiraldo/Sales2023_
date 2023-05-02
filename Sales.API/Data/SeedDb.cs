@@ -4,6 +4,7 @@ using Sales.API.Services;
 using Sales.Shared.Entities;
 using Sales.Shared.Enums;
 using Sales.Shared.Responses;
+using System.Runtime.InteropServices;
 
 namespace Sales.API.Data
 {
@@ -12,23 +13,80 @@ namespace Sales.API.Data
         private readonly DataContext _context;
         private readonly IApiService _apiService;
         private readonly IUserHelper _userHelper;
+        private readonly IFileStorage _fileStorage;
 
-        public SeedDb(DataContext context, IApiService apiService, IUserHelper userHelper)
+        public SeedDb(DataContext context, IApiService apiService, IUserHelper userHelper, IFileStorage fileStorage)
         {
             _context = context;
             _apiService = apiService;
             _userHelper = userHelper;
+            this._fileStorage = fileStorage;
         }
 
         public async Task SeedAsync()
         {
+
             await _context.Database.EnsureCreatedAsync();
             await CheckCountriesAsync();
             await CheckCategoriesAsync();
-           await CheckRolesAsync();
-            await CheckUserAsync("1010", "carolina", "giraldo", "Karoladmin@yopmail.com", "3017916909", "Calle Luna Calle Sol", UserType.Admin);
-        
+            await CheckRolesAsync();
+            await CheckUserAsync("1010", "carolina", "Giraldo", "Karoladmin@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "carolinagiraldo.jpg", UserType.Admin);
+            await CheckUserAsync("2020", "Ledys", "Bedoya", "ledys@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "LedysBedoyaz.jpg", UserType.User);
+            await CheckUserAsync("3030", "Brad", "Pitt", "brad@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "Brad.jpg", UserType.User);
+            await CheckUserAsync("4040", "Angelina", "Jolie", "angelina@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "Angelina.jpg", UserType.User);
+            await CheckProductsAsync();
+
+
         }
+
+        private async Task CheckProductsAsync()
+        {
+            if (!_context.Products.Any())
+            {
+                await AddProductAsync("Adidas Barracuda", 270000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "adidas_barracuda.jpg" });
+                await AddProductAsync("AirPods", 1300000M, 12F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "airpos2.jpg" });
+                await AddProductAsync("iPad", 2300000M, 6F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "ipad.jpg" });
+                await AddProductAsync("iPhone 13", 5200000M, 6F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "iphone12.jpg" });
+
+                //await AddProductAsync("Adidas Barracuda", 270000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "adidas_barracuda.png" });
+                await _context.SaveChangesAsync();
+            }
+
+        
+            }
+
+        private async Task AddProductAsync(string name, decimal price, float stock, List<string> categories, List<string> images)
+        {
+            Product prodcut = new()
+            {
+                Description = name,
+                Name = name,
+                Price = price,
+                Stock = stock,
+                ProductCategories = new List<ProductCategory>(),
+                ProductImages = new List<ProductImage>()
+            };
+
+            foreach (var categoryName in categories)
+            {
+                var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == categoryName);
+                if (category != null)
+                {
+                    prodcut.ProductCategories.Add(new ProductCategory { Category = category });
+                }
+            }
+
+            foreach (string? image in images)
+            {
+                var filePath = $"{Environment.CurrentDirectory}\\Images\\products\\{image}";
+                var fileBytes = File.ReadAllBytes(filePath);
+                var imagePath = await _fileStorage.SaveFileAsync(fileBytes, "jpg", "products");
+                prodcut.ProductImages.Add(new ProductImage { Image = imagePath });
+            }
+
+            _context.Products.Add(prodcut);
+        }
+
 
         private async Task CheckRolesAsync()
         {
@@ -36,11 +94,22 @@ namespace Sales.API.Data
             await _userHelper.CheckRoleAsync(UserType.User.ToString());
         }
 
-        private async Task<User> CheckUserAsync(string document, string firstName, string lastName, string email, string phone, string address, UserType userType)
+        private async Task<User> CheckUserAsync(string document, string firstName, string lastName, string email, string phone, string address, string image, UserType userType)
         {
             var user = await _userHelper.GetUserAsync(email);
+
             if (user == null)
             {
+                var city = await _context.Cities.FirstOrDefaultAsync(x => x.Name == "Medellín");
+                if (city == null)
+                {
+                    city = await _context.Cities.FirstOrDefaultAsync();
+                }
+
+                var filePath = $"{Environment.CurrentDirectory}\\Images\\users\\{image}";
+                var fileBytes = File.ReadAllBytes(filePath);
+                var imagePath = await _fileStorage.SaveFileAsync(fileBytes, "jpg", "users");
+
                 user = new User
                 {
                     FirstName = firstName,
@@ -52,6 +121,7 @@ namespace Sales.API.Data
                     Document = document,
                     City = _context.Cities.FirstOrDefault(),
                     UserType = userType,
+                    Photo = imagePath,
                 };
 
                 await _userHelper.AddUserAsync(user, "123456");
@@ -64,25 +134,27 @@ namespace Sales.API.Data
         {
             if (!_context.Categories.Any())
             {
-               
-                _context.Categories.Add(new Category { Name = "Cámaras" });
-                _context.Categories.Add(new Category { Name = "Camas" });
-                _context.Categories.Add(new Category { Name = "Celulares" });
-                _context.Categories.Add(new Category { Name = "Cerámica" });
-                _context.Categories.Add(new Category { Name = "Cocina" });
-                _context.Categories.Add(new Category { Name = "Colchones" });
-                _context.Categories.Add(new Category { Name = "Comedores" });
-                _context.Categories.Add(new Category { Name = "Peluches" });
-                _context.Categories.Add(new Category { Name = "Perfumes" });
-                _context.Categories.Add(new Category { Name = "Pintura" });
-                _context.Categories.Add(new Category { Name = "Planchas y Secadores" });
-                _context.Categories.Add(new Category { Name = "Plantas" });
-                _context.Categories.Add(new Category { Name = "Puertas" });
-                _context.Categories.Add(new Category { Name = "Relojes" });
+
+                _context.Categories.Add(new Category { Name = "Apple" });
+                _context.Categories.Add(new Category { Name = "Autos" });
+                _context.Categories.Add(new Category { Name = "Belleza" });
+                _context.Categories.Add(new Category { Name = "Calzado" });
+                _context.Categories.Add(new Category { Name = "Comida" });
+                _context.Categories.Add(new Category { Name = "Cosmeticos" });
+                _context.Categories.Add(new Category { Name = "Deportes" });
+                _context.Categories.Add(new Category { Name = "Erótica" });
+                _context.Categories.Add(new Category { Name = "Ferreteria" });
+                _context.Categories.Add(new Category { Name = "Gamer" });
+                _context.Categories.Add(new Category { Name = "Hogar" });
+                _context.Categories.Add(new Category { Name = "Jardín" });
+                _context.Categories.Add(new Category { Name = "Jugetes" });
+                _context.Categories.Add(new Category { Name = "Lenceria" });
+                _context.Categories.Add(new Category { Name = "Mascotas" });
+                _context.Categories.Add(new Category { Name = "Nutrición" });
                 _context.Categories.Add(new Category { Name = "Ropa" });
-                _context.Categories.Add(new Category { Name = "Ropa Deportiva" });
-                _context.Categories.Add(new Category { Name = "Ropa Infantil" });
-             
+                _context.Categories.Add(new Category { Name = "Tecnología" });
+
+
 
                 await _context.SaveChangesAsync();
             }
@@ -97,7 +169,7 @@ namespace Sales.API.Data
                     List<CountryResponse> countries = (List<CountryResponse>)responseCountries.Result!;
                     foreach (CountryResponse countryResponse in countries)
                     {
-                        Country country = await _context.Countries!.FirstOrDefaultAsync(c => c.Name == countryResponse.Name!)!;
+                        Country? country = await _context.Countries!.FirstOrDefaultAsync(c => c.Name == countryResponse.Name!)!;
                         if (country == null)
                         {
                             country = new() { Name = countryResponse.Name!, States = new List<State>() };
